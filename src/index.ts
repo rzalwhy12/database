@@ -1,8 +1,10 @@
 import express , {Application} from "express";
 import expenseRoutes from "./router/expenseRoutes"
+import dotenv from "dotenv"
+dotenv.config();
 
 const app : Application = express();
-const port = 8003;
+const port = process.env.PORT;
 
 app.use(express.json());
 

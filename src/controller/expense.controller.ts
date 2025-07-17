@@ -1,127 +1,150 @@
+
 import { Request, Response } from "express";
-import pool from "../data/db"
+import { prisma } from "../config/prisma";
+import { transaction } from "../../prisma/generated/client";
 
-
-export const getAllTransaction = async (req: Request, res: Response) => {
+// Read Data + pagination
+export const getData = async (req: Request, res: Response) => {
     try {
-        const result = await pool.query('SELECT * from transaction')
-        res.json(result.rows)
-    } catch (error) {
-        console.log(error)
-    };
-};
+        const filterData: Partial<transaction> = {};
+        //partial : seluruh type yang ada di buat di <transactions> akan dibuat opsional
+        // const untuk pagination
+        const pagination: { take?: number; skip?: number } = {};
+        // skip: 0, // define default
+        // take: 0, // ambil default
+        //cara baca : ex. skip 10 data, lalu ambil 30 data setelahnya
 
-export const getTransactonById = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query('SELECT * from transaction where id = $1', [id])
-        res.json(result.rows[0])
-    } catch (error) {
-        console.log(error);
-        res.json(error);
-    };
-};
-
-export const createTransaction = async (req: Request, res: Response) => {
-    try {
-        const { title, nominal, category, type, date } = req.body;
-        const result = await pool.query(`insert into transaction (title,nominal,category,type,date)
-                        values ($1,$2,$3,$4,$5) returning *`,
-            [title, nominal, category, type, date]);
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        console.log(error);
-    };
-};
-
-export const deleteTransaction = async (req: Request, res: Response) => {
-    try {
-        const  {id}  = req.params;
-        const result = await pool.query('DELETE from transaction where id = $1 returning *', [id])
-        res.json(result.rows[0])
-    } catch (error) {
-        console.log(error);
-    };
-};
-
-export const updateTransaction = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const { title, nominal, category, type, date } = req.body;
-
-        const result = await pool.query(`UPDATE transaction 
-            SET title = $2, nominal = $3, category = $4, type = $5, date = $6
-            WHERE id = $1 
-            RETURNING *`,
-            [id, title, nominal, category, type, date],
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Transaction not found.' });
-        };
-        res.status(200).json(result.rows[0]);
-    } catch (error) {
-        console.error("Error updating transaction:", error);
-        res.status(500).json({ message: 'Internal server error.' });
-    };
-};
-
-export const totalTransactionByDate = async (req: Request, res: Response) => {
-    try {
-        const datestart = req.params.datestart;
-        const dateend = req.params.dateend;
-
-        if (!datestart || !dateend) {
-            return res.status(400).json({ message: 'Both datestart and dateend are required.' });
+        if (req.query.id) {
+            filterData.id = parseInt(req.query.id as string);
         }
-
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (!dateRegex.test(datestart) || !dateRegex.test(dateend)) {
-            return res.status(400).json({ message: 'Invalid date format. Use YYYY-MM-DD.' });
+        if (req.query.categoryid) {
+            filterData.categoryId = parseInt(req.query.categoryid as string);
         }
+        // Pengaturan Pagination
+        if (req.query.page && req.query.limit) {
+            pagination.take = parseInt(req.query.limit as string);
+            pagination.skip =
+                (parseInt(req.query.page as string) - 1) * pagination.take;
+            // rumusnya : page ke-n dikurangi 1 dikali jumlah limit per page
+        }
+        // skip : melompati data
 
-        const result = await pool.query(
-            `SELECT COALESCE(SUM(nominal), 0) AS total_nominal
-            FROM transaction
-            WHERE date BETWEEN $1 AND $2 `,
-            [datestart, dateend]
-        );
-
-        const totalNominal = parseFloat(result.rows[0].total_nominal);
-
-        res.status(200).json({
-            datestart,
-            dateend,
-            totalNominal
+        const transactions: transaction[] = await prisma.transaction.findMany({
+            ...pagination,
+            where: filterData,
+            include: {
+                categories: {
+                    select: {
+                        category: true,
+                        type: true,
+                        created_at: true,
+                    },
+                },
+            },
         });
-
+        res.status(200).send(transactions);
     } catch (error) {
-        console.error("Error fetching total transactions by date range:", error);
-        res.status(500).json({ message: 'Internal server error.' });
+        console.log(error);
+        res.status(500).send(error);
     }
 };
 
-export const totalTransactionByCategory = async (req: Request, res: Response) => {
+// Add Data
+export const addData = async (req: Request, res: Response) => {
     try {
-        const {category} = req.params;
-    
-        const result = await pool.query(`SELECT COALESCE(SUM(nominal), 0) AS total_nominal
-            FROM transaction
-            WHERE category = $1`,
-            [category]);
-
-        const totalNominal = parseFloat(result.rows[0].total_nominal as string);
-
-        res.status(200).json({
-            category: category, // Send back the category that was queried
-            totalNominal: totalNominal,
+        await prisma.transaction.create({
+            data: req.body,
         });
-        
-    } catch (error) {
-        console.log(error)
-        const err = "error server e khang"
-        res.status(500).json({
-            err,
+        res.status(200).send({
+            success: true,
+            message: "Add data success",
         });
-    };
+    } catch (error: any) {
+        console.log(error);
+        res.status(500).send({
+            success: false,
+            message: error.message,
+            error: error,
+            body: req.body
+        });
+    }
 };
+// Update Data
+export const updateData = async (req: Request, res: Response) => {
+    try {
+        const update = await prisma.transaction.update({
+            where: {
+                id: parseInt(req.params.id as string),
+            },
+            data: req.body,
+        });
+
+        res.status(200).send({
+            success: true,
+            message: "Update Data Success",
+            result: update,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+};
+
+// Delete Data
+export const deleteData = async (req: Request, res: Response) => {
+    try {
+        const remove = await prisma.transaction.delete({
+            where: {
+                id: parseInt(req.params.id as string),
+            },
+        });
+
+        res.status(200).send({
+            success: true,
+            message: "Remove Data Success",
+            result: remove,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+};
+
+export const getByCategory = async (req: Request, res: Response) => {
+    try {
+        const result = await prisma.transaction.aggregate({
+            _sum: {
+                nominal: true,
+            }, where: {
+                categoryId: req.params.categoryId as any
+                //kenapa tidak butuh as string?
+                //bedanya params dengan query? params kalo gadiisi akan error, kalo query bisa ada bisa tidak
+            }
+        });
+
+        const get = await prisma.transaction.findMany({
+            where: {
+                categoryId: req.params.categoryId as any,
+            },
+            include: {
+                categories: {
+                    select: {
+                        category: true,
+                        type: true,
+                        created_at: true,
+                    },
+                },
+            },
+
+        })
+
+        res.status(200).send({
+            total: result._sum.nominal,
+            data: get
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error)
+    }
+}
