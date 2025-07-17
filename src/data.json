@@ -1,0 +1,90 @@
+[
+  {
+    "id": "0063a718-cc0b-4fcd-9692-0bfac2163560",
+    "title": "Pembelian Bahan Makanan",
+    "nominal": 150000,
+    "type": "expense",
+    "category": "Food",
+    "date": "2025-07-11"
+  },
+  {
+    "id": "354c8453-6e8e-4c8f-b4f3-f71a8cfe4eb2",
+    "title": "gajian",
+    "nominal": 15000000,
+    "type": "income",
+    "category": "salary",
+    "date": "2025-07-04"
+  },
+  {
+    "id": "bd31d399-60a9-4181-adff-646e85f31a83",
+    "title": "naik gojek",
+    "nominal": 15000,
+    "type": "expense",
+    "category": "transport",
+    "date": "2025-07-08"
+  },
+  {
+    "id": "0e35b285-7852-429c-a6dd-d0a5de245231",
+    "title": "makan diluar",
+    "nominal": 150000,
+    "type": "expense",
+    "category": "food",
+    "date": "2025-07-09"
+  },
+  {
+    "id": "075ef11d-d4ae-4201-a40a-2892c2022631",
+    "title": "fee",
+    "nominal": 150000,
+    "type": "income",
+    "category": "salary",
+    "date": "2025-07-13"
+  },
+  {
+    "id": "fe5c05b9-7706-47e1-bff5-3551733192a4",
+    "title": "beli motor",
+    "nominal": 10000000,
+    "type": "expense",
+    "category": "transport",
+    "date": "2025-07-20"
+  },
+  {
+    "id": "68a6cdc6-25db-4ed1-b684-5c7552195744",
+    "title": "thr",
+    "nominal": 1000000,
+    "type": "income",
+    "category": "salary",
+    "date": "2025-07-21"
+  },
+  {
+    "id": "65d308f0-f264-4e00-9968-762bccf17e94",
+    "title": "uang korupsi",
+    "nominal": 900000000,
+    "type": "income",
+    "category": "salary",
+    "date": "2025-07-30"
+  },
+  {
+    "id": "7a36e2f4-9849-4b49-b4e4-c175e43deb11",
+    "title": "bayar polisi",
+    "nominal": 100000000,
+    "type": "expense",
+    "category": "court",
+    "date": "2025-07-30"
+  },
+  {
+    "id": "e7853616-e226-4d43-bdb6-604636c2799c",
+    "title": "penyitaan aset",
+    "nominal": 800000000,
+    "type": "expense",
+    "category": "court",
+    "date": "2025-07-31"
+  },
+  {
+    "id": "ec247c6d-ca87-4480-93b0-d27869bc3ee7",
+    "title": "hasil cuci uang",
+    "nominal": 400000000,
+    "type": "income",
+    "category": "salary",
+    "date": "2025-07-31"
+  }
+]
